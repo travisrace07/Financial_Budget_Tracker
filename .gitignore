@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+.env
+*.db
+.DS_Store
+.mysql-local.json
+# Local financial data and credentials
+.env.*
+!.env.example
+*.sqlite
+*.sqlite3
+*.csv
+!static/sample.csv
+!docs/static/sample.csv
+*.sql
+*.pem
+*.key
