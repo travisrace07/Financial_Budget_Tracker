@@ -1,0 +1,14 @@
+.git
+.venv
+.env
+*.db
+__pycache__
+tests
+.mysql-local.json
+
+.env.*
+*.sqlite*
+*.sql
+*.csv
+!static/sample.csv
+docs
