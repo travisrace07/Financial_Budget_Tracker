@@ -1,88 +1,125 @@
-# Ledger
+# Ledger — Personal Budget Tracker
 
-Personal budget tracker built with Python/Flask, SQLAlchemy, MySQL 8.4, and dependency-free HTML/CSS/JavaScript charts.
+Ledger turns transaction CSVs into a monthly view of income, spending, and savings. It automatically groups transactions by category, compares spending against budgets, and identifies possible recurring charges.
 
-[Source code](https://github.com/travisrace07/Financial_Budget_Tracker)
+Built with Python, Flask, SQLAlchemy, MySQL, and vanilla JavaScript.
 
-## Portfolio demo
+[View demo](https://travisrace07.github.io/Financial_Budget_Tracker/)
 
-Ledger demonstrates CSV validation, merchant-based categorization, monthly financial summaries, category budgets, visual reporting, and recurring-payment detection.
+## Features
 
-The `docs/` folder is a standalone, sample-only dashboard for GitHub Pages. Visitors can explore charts, reporting months, transaction search, budgets, and recurring-charge examples. The figures are fictional illustrative fixtures, not a complete underlying ledger. Uploads and saving are disabled in the public demo; the full Python/MySQL app below implements those features. GitHub Pages serves the frontend only and does not run Python or MySQL.
+- Import transactions from CSV files, with validation and duplicate detection.
+- Categorize spending using merchant rules and correct categories manually.
+- Track monthly income, expenses, net savings, and savings rate.
+- Set monthly category budgets and see spending against each limit.
+- Explore cash flow, spending breakdowns, and six-month savings trends.
+- Find recurring weekly, biweekly, and monthly charges.
+- Search transactions by description or category.
 
-### Publish the repository and demo
+The demo uses fictional sample figures and supports browsing only. CSV imports, category changes, and saved budgets are available when running the full app locally.
 
-1. Open https://github.com/travisrace07/Financial_Budget_Tracker while signed in as the repository owner.
-2. Push this project to that repository, or use **Add file → Upload files** to upload the contents of the clean source package. Preserve the folders, including `docs/`.
-3. In the GitHub repository, open **Settings → Pages**. Choose **Deploy from a branch**, select the branch containing your code, choose **/docs**, and save.
-4. GitHub will display the published demo link on that page. Add it to the repository's **About → Website** field and your portfolio.
+## Run locally
 
-Only commit project source and fictional sample data. `.gitignore` excludes local credentials, environment files, databases, transaction CSVs, and the virtual environment. Git ignore rules do not remove files already committed; inspect your commit before publishing. Never upload the entire folder as a ZIP because it contains local private files.
+### With Docker
 
-After changing the interface, regenerate the demo and commit the updated `docs/` files:
-
-```sh
-python3 scripts/build_demo.py
-```
-
-Preview it locally with `python3 -m http.server 8080 --directory docs`, then open http://localhost:8080.
-
-### Architecture and scope
-
-- **Backend:** Flask endpoints for CSV import, dashboard aggregation, category corrections, and monthly budgets.
-- **Persistence:** SQLAlchemy models backed by MySQL; isolated SQLite databases support local tests.
-- **Frontend:** Responsive HTML/CSS and vanilla JavaScript with charts and accessible form labels.
-- **Data handling:** Atomic CSV validation, duplicate detection, decimal currency arithmetic, and heuristic recurring-payment detection.
-
-The full app is a local, single-user project. Authentication, multiple accounts, bank synchronization, and production hosting are outside this release. Categorization uses rules rather than machine learning.
-
-## Run with MySQL
-
-Install Docker Desktop, then from this folder:
+Install Docker Desktop, then run these commands from the project folder:
 
 ```sh
 cp .env.example .env
-# Edit .env and replace both passwords with random alphanumeric values.
+```
+
+Edit `.env` and replace both placeholder passwords with long, random alphanumeric values. Then start the app:
+
+```sh
 docker compose up --build -d
 ```
 
-Open http://localhost:8000. MySQL data persists in the `ledger_data` volume. The app is bound to your machine's loopback interface; this is a single-user local application with no authentication. Add authentication and HTTPS before exposing it to a network. Back up MySQL before removing its volume.
+Open [localhost:8000](http://localhost:8000). MySQL stores data in the `ledger_data` Docker volume, which persists between restarts.
 
-## Run Python directly
+### With Python and an existing MySQL server
 
-With a MySQL database and user already created:
+Create a virtual environment and install the dependencies:
 
 ```sh
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
+```
+
+Run the setup script and enter your MySQL administrator credentials in Terminal:
+
+```sh
+.venv/bin/python setup_mysql.py
+```
+
+The script creates the `ledger` database and a dedicated application user. Connection settings are saved locally in `.mysql-local.json`; the administrator password is not saved.
+
+Start the app:
+
+```sh
+.venv/bin/python run_mysql.py
+```
+
+Open [localhost:8001](http://localhost:8001). Keep Terminal running while using the app, and press Control-C to stop it.
+
+Alternatively, supply a database connection directly:
+
+```sh
 export DATABASE_URL='mysql+pymysql://ledger:YOUR_PASSWORD@localhost:3306/ledger?charset=utf8mb4'
 .venv/bin/python app.py
 ```
 
-Tables are created on startup. The Docker deployment supplies the database automatically. For a local development preview without MySQL, explicitly use `DATABASE_URL=sqlite:///preview.db`; SQLite is only a development alternative, not the Docker application's database.
+This starts the app on port 8000 and creates its tables on startup. SQLite is also available for development by setting `DATABASE_URL=sqlite:///preview.db`.
 
-## Import and use
+## CSV format
 
-- Upload a UTF-8 CSV with `date,description,amount`, or `date,description,debit,credit`. Accepted aliases: transaction date, posted date, merchant, memo, details. Optional `category` must match an app category.
-- Use ISO dates or US dates. Default amounts: negative = expense, positive = income. Select the import checkbox if your bank uses the opposite convention. Debit/credit columns use nonnegative amounts.
-- Maximum 5 MB and 10,000 rows. Validation is atomic: a bad row rejects the whole file and reports its row number.
-- Rule-based merchant matching categorizes spending. Correct categories in Transactions. Corrections update charts and budget totals; they do not train future rules.
-- Income includes positive non-transfer transactions (including refunds). Spending includes negative non-transfer transactions. Savings = income minus spending. Savings rate is unavailable when income is zero. All values use USD; there is no currency conversion.
-- Budgets are per category and month. Saving an existing category updates its limit. Select each month to set its budgets.
-- Recurring estimates require the last three same-description charges to have weekly, biweekly, or monthly intervals and similar amounts, with the latest payment in the selected month. This is a heuristic, not subscription verification.
-- Exact date/description/amount occurrences are deduplicated across imports, preserving repeated identical rows within a file. Without bank transaction IDs/account identifiers, overlapping files from different accounts or identical legitimate payments can be ambiguous. Review skipped counts; this version is intended for one consolidated ledger.
-- Sample dashboard data is isolated in browser memory. Import the downloadable CSV if you want editable sample records in the database.
+Use a UTF-8 CSV with these columns:
 
-## Checks
+```csv
+date,description,amount
+2026-09-01,Monthly payroll,6800.00
+2026-09-02,Apartment rent,-1800.00
+2026-09-07,Whole Foods,-126.45
+```
+
+Negative amounts represent expenses; positive amounts represent income. Select the import option for positive spending amounts if your bank uses the opposite convention. Separate `debit` and `credit` columns are also supported, using nonnegative values.
+
+Dates can use `YYYY-MM-DD`, `MM/DD/YYYY`, or `MM/DD/YY`. An optional `category` column can supply an existing app category. Files can contain up to 10,000 transactions and must be smaller than 5 MB. If a row fails validation, the entire import is rejected with its row number.
+
+An [example CSV](static/sample.csv) is included in the project.
+
+## How calculations work
+
+Income includes positive transactions, including refunds. Expenses include negative transactions. Transfers are excluded from both. Net savings equals income minus expenses; savings rate is net savings divided by income. All amounts are in USD.
+
+Budgets apply to one category and month. Updating a category changes its spending totals, but does not change the rules used to categorize future imports.
+
+Recurring-charge estimates use the last three payments with the same description, similar amounts, and weekly, biweekly, or monthly intervals. The latest payment must fall in the selected month. These estimates may miss renamed merchants or changing payment amounts.
+
+Duplicate detection compares dates, descriptions, amounts, and repeated occurrences within a file. Without bank transaction IDs, identical payments from different accounts can be ambiguous. The app is intended for one consolidated ledger.
+
+## Project structure
+
+| Path | Purpose |
+| --- | --- |
+| `app.py` | Flask routes, CSV parsing, database models, and financial calculations |
+| `templates/` | Dashboard HTML |
+| `static/` | JavaScript, styles, and sample transactions |
+| `tests/` | API and calculation tests |
+| `docs/` | Static sample-data demo |
+| `scripts/build_demo.py` | Rebuilds the demo from the dashboard source |
+| `setup_mysql.py` | Local database setup |
+| `run_mysql.py` | Starts the app with saved MySQL settings |
+
+## Tests
 
 ```sh
 .venv/bin/python -m unittest discover -s tests -v
 ```
 
-Tests use an isolated SQLite database for API and financial logic. To run the same API tests against a disposable MySQL database, set `TEST_DATABASE_URL` to its connection URL. Tests erase that database's application tables. Do not use your personal database.
+Tests use an isolated SQLite database by default. To test against MySQL, set `TEST_DATABASE_URL` to a disposable database connection. The tests erase that database's application tables.
 
-## Guided local MySQL setup (Workbench installation)
+## Current scope
 
-Run `.venv/bin/python setup_mysql.py` and enter your MySQL administrator username and password privately in Terminal. The script creates the `ledger` database and a unique app account, verifies access, and writes `.mysql-local.json` with owner-only permissions. This file is excluded from Git and Docker. The administrator password is not saved.
+Ledger is a local, single-user application. It does not include login accounts, bank synchronization, or currency conversion. The public demo has no database connection and does not accept financial uploads. Its sample figures illustrate the interface rather than a complete transaction history.
 
-Then run `.venv/bin/python run_mysql.py` and open http://127.0.0.1:8001. Port 8001 keeps the MySQL app distinct from the SQLite preview on port 8000. Existing SQLite preview transactions are not automatically migrated; import your CSV into the MySQL app. Keep Terminal running while using the dashboard; press Control-C to stop it.
+Local credentials, environment files, and database files are excluded from version control. The full app should remain local unless authentication and appropriate hosting security are added.
