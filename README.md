@@ -2,9 +2,62 @@
 
 Ledger turns transaction CSVs into a monthly view of income, spending, and savings. It automatically groups transactions by category, compares spending against budgets, and identifies possible recurring charges.
 
-Built with Python, Flask, SQLAlchemy, MySQL, and vanilla JavaScript.
+Built with Python, Flask, SQLAlchemy, and vanilla JavaScript. The desktop edition
+uses SQLite; the server edition also supports MySQL.
 
 [View demo](https://travisrace07.github.io/Financial_Budget_Tracker/)
+
+## Download and test the desktop app
+
+The desktop edition runs in its own window and saves transactions and budgets on
+your computer. Packaged downloads include Python; you do not need to install
+Python, MySQL, or Docker to use them.
+
+Downloads are distributed through [GitHub Releases](https://github.com/travisrace07/Financial_Budget_Tracker/releases)
+when a preview is published. If no desktop files are listed there yet, follow the
+build and publishing steps below. GitHub's **Code → Download ZIP** downloads the
+source code, not an installable application.
+
+| Computer | Download | Installation |
+| --- | --- | --- |
+| Mac with Apple silicon | `Ledger-macOS-arm64.zip` | Unzip, move `Ledger.app` to Applications, then open it. |
+| Intel Mac, if an Intel build is provided | `Ledger-macOS-x86_64.zip` | Unzip, move `Ledger.app` to Applications, then open it. |
+| Windows x64 | `Ledger-Windows-Setup.exe` | Run the installer and open Ledger from the Start menu. |
+| Windows x64, portable option | `Ledger-Windows-x64.zip` | Extract the whole ZIP and open `Ledger/Ledger.exe`. Keep the `_internal` folder alongside it. |
+
+Windows requires [Microsoft Edge WebView2 Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/).
+Install the Evergreen Runtime if it is missing. Initial preview packages are
+unsigned and may show operating-system security prompts. The default Mac workflow
+builds for its runner's architecture; it does not produce both Mac architectures.
+
+### A quick reviewer walkthrough
+
+1. Open Ledger and select **Explore sample dashboard** for a quick tour.
+2. Return to **Back to my finances**, then open **Import transactions** and download
+   the example CSV.
+3. Import that CSV and inspect the income, expenses, and savings totals.
+4. Change a transaction's category and set a budget for the selected month.
+5. Close and reopen Ledger to check that your imported data and budget were saved.
+
+Your data stays outside the installed application, so replacing the app preserves
+it. See [desktop installation, backup, and build instructions](DESKTOP.md) for data
+locations and troubleshooting. The desktop edition starts with an empty database;
+it does not automatically copy an existing MySQL database.
+
+### Build and publish a preview (maintainer)
+
+1. Push the desktop packaging changes to GitHub's `main` branch.
+2. Open [Actions → Build desktop downloads](https://github.com/travisrace07/Financial_Budget_Tracker/actions/workflows/desktop.yml),
+   choose **Run workflow**, and wait for both Mac and Windows jobs to succeed.
+3. Download and extract the workflow artifacts. Test the application on each
+   target operating system before distributing it.
+4. Under **Releases**, draft a release such as **Ledger — Preview 0.1.0**, mark it
+   **Pre-release**, and attach the Mac ZIP and Windows installer from the artifacts.
+5. Publish the release and share its link with your reviewer.
+
+The workflow uploads build artifacts; it does **not** publish a release automatically.
+A normal push to `main` also does not start this workflow automatically—use
+**Run workflow**, or push a tag beginning with `desktop-v`.
 
 ## Features
 
