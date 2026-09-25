@@ -7,16 +7,16 @@ uses SQLite; the server edition also supports MySQL.
 
 [View demo](https://travisrace07.github.io/Financial_Budget_Tracker/)
 
-## Download and test the desktop app
+## Desktop installation
 
 The desktop edition runs in its own window and saves transactions and budgets on
-your computer. Packaged downloads include Python; you do not need to install
-Python, MySQL, or Docker to use them.
+the local computer. Packaged downloads include Python and require no separate
+Python, MySQL, or Docker installation.
 
 Downloads are distributed through [GitHub Releases](https://github.com/travisrace07/Financial_Budget_Tracker/releases)
-when a preview is published. If no desktop files are listed there yet, follow the
-build and publishing steps below. GitHub's **Code → Download ZIP** downloads the
-source code, not an installable application.
+as release assets. Available operating systems and architectures are listed on
+each release. GitHub's **Code → Download ZIP** provides the source code; desktop
+packages are attached separately under **Assets**.
 
 | Computer | Download | Installation |
 | --- | --- | --- |
@@ -30,34 +30,19 @@ Install the Evergreen Runtime if it is missing. Initial preview packages are
 unsigned and may show operating-system security prompts. The default Mac workflow
 builds for its runner's architecture; it does not produce both Mac architectures.
 
-### A quick reviewer walkthrough
+### Getting started
 
-1. Open Ledger and select **Explore sample dashboard** for a quick tour.
-2. Return to **Back to my finances**, then open **Import transactions** and download
+1. Open Ledger and select **Explore sample dashboard** to view fictional sample data.
+2. Select **Back to my finances**, then open **Import transactions** and download
    the example CSV.
 3. Import that CSV and inspect the income, expenses, and savings totals.
 4. Change a transaction's category and set a budget for the selected month.
-5. Close and reopen Ledger to check that your imported data and budget were saved.
+5. Close and reopen Ledger to verify that the imported data and budget persist.
 
-Your data stays outside the installed application, so replacing the app preserves
-it. See [desktop installation, backup, and build instructions](DESKTOP.md) for data
+Financial data is stored separately from the installed application and persists
+when the application is replaced. See [desktop installation, backup, and build instructions](DESKTOP.md) for data
 locations and troubleshooting. The desktop edition starts with an empty database;
 it does not automatically copy an existing MySQL database.
-
-### Build and publish a preview (maintainer)
-
-1. Push the desktop packaging changes to GitHub's `main` branch.
-2. Open [Actions → Build desktop downloads](https://github.com/travisrace07/Financial_Budget_Tracker/actions/workflows/desktop.yml),
-   choose **Run workflow**, and wait for both Mac and Windows jobs to succeed.
-3. Download and extract the workflow artifacts. Test the application on each
-   target operating system before distributing it.
-4. Under **Releases**, draft a release such as **Ledger — Preview 0.1.0**, mark it
-   **Pre-release**, and attach the Mac ZIP and Windows installer from the artifacts.
-5. Publish the release and share its link with your reviewer.
-
-The workflow uploads build artifacts; it does **not** publish a release automatically.
-A normal push to `main` also does not start this workflow automatically—use
-**Run workflow**, or push a tag beginning with `desktop-v`.
 
 ## Features
 
@@ -71,12 +56,10 @@ A normal push to `main` also does not start this workflow automatically—use
 
 The demo uses fictional sample figures and supports browsing only. CSV imports, category changes, and saved budgets are available when running the full app locally.
 
-## Run locally
+## Run the web application from source
 
-For a downloadable Mac or Windows desktop edition, see [DESKTOP.md](DESKTOP.md).
-It starts the backend automatically and stores data in a local SQLite database.
-Build scripts and a GitHub Actions workflow are included; the public website remains
-a sample-data demo.
+The following options run the Flask application in a browser. For desktop source
+setup and packaging, see the [desktop guide](DESKTOP.md).
 
 ### With Docker
 
@@ -103,7 +86,7 @@ python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 ```
 
-Run the setup script and enter your MySQL administrator credentials in Terminal:
+Run the setup script and enter the MySQL administrator credentials in Terminal:
 
 ```sh
 .venv/bin/python setup_mysql.py
@@ -139,7 +122,7 @@ date,description,amount
 2026-09-07,Whole Foods,-126.45
 ```
 
-Negative amounts represent expenses; positive amounts represent income. Select the import option for positive spending amounts if your bank uses the opposite convention. Separate `debit` and `credit` columns are also supported, using nonnegative values.
+Negative amounts represent expenses; positive amounts represent income. Select the import option for positive spending amounts if the bank export uses the opposite convention. Separate `debit` and `credit` columns are also supported, using nonnegative values.
 
 Dates can use `YYYY-MM-DD`, `MM/DD/YYYY`, or `MM/DD/YY`. An optional `category` column can supply an existing app category. Files can contain up to 10,000 transactions and must be smaller than 5 MB. If a row fails validation, the entire import is rejected with its row number.
 
@@ -162,7 +145,12 @@ Duplicate detection compares dates, descriptions, amounts, and repeated occurren
 | `app.py` | Flask routes, CSV parsing, database models, and financial calculations |
 | `templates/` | Dashboard HTML |
 | `static/` | JavaScript, styles, and sample transactions |
-| `tests/` | API and calculation tests |
+| `tests/` | API, calculation, and desktop persistence tests |
+| `desktop.py` | Desktop window, local server, and SQLite storage |
+| `packaging/` | Application bundle and Windows installer configuration |
+| `scripts/build_desktop.py` | Builds and checks desktop packages |
+| `.github/workflows/desktop.yml` | Mac and Windows build workflow |
+| `DESKTOP.md` | Desktop setup, backups, packaging, and release instructions |
 | `docs/` | Static sample-data demo |
 | `scripts/build_demo.py` | Rebuilds the demo from the dashboard source |
 | `setup_mysql.py` | Local database setup |
@@ -175,6 +163,14 @@ Duplicate detection compares dates, descriptions, amounts, and repeated occurren
 ```
 
 Tests use an isolated SQLite database by default. To test against MySQL, set `TEST_DATABASE_URL` to a disposable database connection. The tests erase that database's application tables.
+
+## Desktop builds and releases
+
+The **Build desktop downloads** workflow creates Mac and Windows packages and
+uploads them as workflow artifacts. Release publication is a separate step. See
+[building desktop packages](DESKTOP.md#build-downloads) and
+[publishing a preview release](DESKTOP.md#publish-a-preview-release) for maintainer
+instructions.
 
 ## Current scope
 

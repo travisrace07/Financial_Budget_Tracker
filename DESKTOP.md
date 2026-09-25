@@ -4,7 +4,7 @@ The desktop edition runs the full application locally: CSV imports, transaction
 categories, budgets, and reports. It bundles Python and uses SQLite, so end users
 do not install Python or MySQL. The public sample-data website stays separate.
 
-## Install a built download
+## Installation
 
 - **Mac:** unzip `Ledger-macOS-<architecture>.zip`, move `Ledger.app` to Applications,
   and open it. An arm64 build is for Apple silicon; an x86_64 build is for Intel.
@@ -26,9 +26,9 @@ Ledger creates `ledger.sqlite3` automatically in:
 - Windows: `%LOCALAPPDATA%\Ledger\`
 
 Close Ledger before copying that file for a backup. To restore, close Ledger and
-replace the file with your backup. Updates and the Windows uninstaller leave this
+replace the file with the backup. Updates and the Windows uninstaller leave this
 folder intact. The desktop edition starts with an empty database; it does not
-automatically migrate your existing MySQL database or development `preview.db`.
+automatically migrate an existing MySQL database or development `preview.db`.
 Startup errors are recorded in `desktop.log` in the same folder.
 
 ## Run from source
@@ -67,11 +67,11 @@ On Windows, install [Inno Setup 6](https://jrsoftware.org/isinfo.php) and run
 `ISCC.exe packaging\windows.iss` to produce the installer as well.
 
 The GitHub Actions workflow **Build desktop downloads** builds on Mac and Windows,
-runs tests, and uploads downloads as workflow artifacts. After the changes are
-pushed, open the repository's Actions tab, select that workflow, and choose
+runs tests, and uploads downloads as workflow artifacts. Open the repository's
+Actions tab, select that workflow, and choose
 **Run workflow**. Download the artifacts from the finished run. Nothing is
 automatically published to a public release. The Mac runner builds for its own
-architecture; use an Intel Mac runner as an additional job if you need Intel binaries.
+architecture; Intel binaries require an additional build on an Intel Mac runner.
 Building Windows from a Mac is not supported by PyInstaller.
 
 Before distributing, test the GUI on a clean computer of each target platform:
@@ -79,9 +79,26 @@ launch, import a CSV, change a category, save a budget, close and reopen, downlo
 the example CSV, and install an updated build to verify that data remains intact.
 Automated bundle checks do not replace these native-window checks.
 
+## Publish a preview release
+
+1. Run **Build desktop downloads** from the Actions tab for the intended release
+   branch. The workflow must be present on the default branch to run manually.
+2. Wait for both platform jobs to succeed, then download and extract their artifacts.
+3. Complete the platform checks listed above.
+4. Create a draft under **Releases**, select the release commit, and assign a
+   version tag and title. Mark preview versions as **Pre-release**.
+5. Attach the application ZIP and installer files extracted from the artifacts.
+   Include supported architectures, installation steps, and known limitations
+   in the release notes.
+6. Publish the release after reviewing its notes and attached files.
+
+The workflow does not publish releases automatically. It runs manually or when a
+tag beginning with `desktop-v` is pushed; a normal push to `main` does not start a
+build.
+
 ## Branding
 
-The interface still uses `templates/index.html`, `static/app.js`, and
+The interface uses `templates/index.html`, `static/app.js`, and
 `static/style.css`. Place custom button images in `static/icons/`.
 For the application icon, add `packaging/ledger.icns` for Mac and
 `packaging/ledger.ico` for Windows, then rebuild. Without these files the packaging
