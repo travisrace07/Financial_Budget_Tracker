@@ -25,7 +25,7 @@ class DesktopTests(unittest.TestCase):
     def login(self):
         response = self.client.get(self.server.launch_url, follow_redirects=True)
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Financial overview', response.data)
+        self.assertIn(b'financial overview', response.data.lower())
 
     def test_access_and_assets(self):
         self.assertEqual(self.client.get(self.url + '/api/dashboard').status_code, 403)

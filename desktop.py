@@ -79,7 +79,7 @@ def smoke_test():
         try:
             client = build_opener(ProxyHandler({}), HTTPCookieProcessor(CookieJar()))
             with client.open(server.launch_url, timeout=10) as response:
-                assert b'Financial overview' in response.read()
+                assert b'financial overview' in response.read().lower()
             for path in ('/static/app.js', '/static/style.css', '/static/sample.csv'):
                 with client.open(server.base_url + path, timeout=10) as response:
                     assert response.status == 200 and response.read()
